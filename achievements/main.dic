@@ -78,7 +78,7 @@ OnMenuExec : all
 	res_marker = version //This will show up in the little SSTP text in the ghost's balloon.
 	
 	"\_q\*\b2\f[height,+3]Current Ghost: \_a[OnShowNames]\f[bold,1]%(ghostNames[ghostId])\f[default]\_a\n\n"
-	if _allCount > 1 && _split[0] != ""; "\f[bold,1]Achievements %(_doneCount)/%(_allCount)\f[bold,0]\n\n[half]%(_page)"
+	if _allCount > 0 && _split[0] != ""; "\f[bold,1]Achievements %(_doneCount)/%(_allCount)\f[bold,0]\n\n[half]%(_page)"
 	else; "\f[bold,1]No achievemements available for this ghost\f[bold,0]\n\n[half]"
 	"\n\n[half]\![*]\__q[OnFindAchievements]Check for achievements\__q\n\n"
 	
@@ -90,18 +90,22 @@ OnMenuExec : all
 
 OnShowNames : all
 {
-	if ARRAYSIZE(ghostNames) > 0
-	{
-		"\*\b2\_qChoose a ghost:\n\n[half]"
+	
+	_ghosts = ""
 
-		for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
-		{
-			if ARRAYSIZE(achievements[_i]) != 0; (_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
-		}
+	for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
+	{
+		if ARRAYSIZE(achievements[_i]) != 0; _ghosts += (_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
+	}
+
+	if ARRAYSIZE(ghostNames) > 0 && _ghosts != ""
+	{
+		"\*\b2\_qChoose a ghost:\n\n[half]%(_ghosts)"
+
 	}
 	else
 	{
-		"\*\b2\_qNo ghosts available\n\f[height,-2]Ghosts with no achievements won't show up\f[height,-2]\n\n[half]"
+		"\*\b2\_qNo ghosts available\n\f[height,-2]Ghosts with no achievements won't show up\f[height,default]\n\n[half]"
 	}
 
 	"\n\n[half]\![*]\q[Go Back,OnChangeGhost,%(ghostId)]\n"
@@ -180,7 +184,12 @@ OnGetAchievements
 	{
 		ghostId = ARRAYSIZE(ghostNames)
 		ghostNames ,= reference[1]
-	 
+	}
+	else
+	{
+		ghostId = ASEARCH(_ghostName,ghostNames)
+	}
+
 	for _i = 0; _i < ARRAYSIZE(_name); _i++
 	{
 		_a ,= _name[_i] + "|" + _desc[_i]  + "|0" + "|new"
@@ -188,7 +197,6 @@ OnGetAchievements
 	
 	achievements[ghostId] = "%(_a)"
 	if reference[3] != ""; settings[ghostId] = TOINT(reference[3])
-	}
 
 	//"%(achievements[ghostId])\n%(settings[ghostId])"
 }
@@ -254,7 +262,8 @@ OnAchievementUpdate
 
 OnFindAchievements : all
 {
-	res_target = SHIORI3FW.SakuraNameList[0]
+	//res_target = SHIORI3FW.SakuraNameList[0]
+	--
 	"\![raiseother,__SYSTEM_ALL_GHOST__,OnSendAchievements]"
 	"\![raise,OnSendAchievements]"
 	"\![raiseplugin,Achievements,OnMenuExec]"
