@@ -31,7 +31,7 @@
 //Display name and version of the plugin in the balloon's SSTP text
 version
 {
-	"Achievements v0.0.1"
+	"Achievements v0.0.2"
 }
 
 //Happens when the plugin loads, usually when SSP starts
@@ -79,8 +79,8 @@ OnMenuExec : all
 	
 	"\_q\*\b2\f[height,+3]Current Ghost: \_a[OnShowNames]\f[bold,1]%(ghostNames[ghostId])\f[default]\_a\n\n"
 	if _allCount > 1 && _split[0] != ""; "\f[bold,1]Achievements %(_doneCount)/%(_allCount)\f[bold,0]\n\n[half]%(_page)"
-	else; "\f[bold,1]No achievemements avalible for this ghost\f[bold,0]\n\n[half]"
-	"\![*]\__q[OnFindAchievements]Check for achievements\__q\n\n"
+	else; "\f[bold,1]No achievemements available for this ghost\f[bold,0]\n\n[half]"
+	"\n\n[half]\![*]\__q[OnFindAchievements]Check for achievements\__q\n\n"
 	
 	//"\![*]Example toggle (does nothing): \__q[OnExampleToggle]%(ExampleToggle)\__q\n\n"
 	achievements[ghostId] = REPLACE(achievements[ghostId],"new","")
@@ -90,11 +90,21 @@ OnMenuExec : all
 
 OnShowNames : all
 {
-	"\*\b2\_q* Choose a ghost:\n\n[half]"
-	for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
+	if ARRAYSIZE(ghostNames) > 0
 	{
-		if ARRAYSIZE(achievements[_i]) != 0; (_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
+		"\*\b2\_qChoose a ghost:\n\n[half]"
+
+		for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
+		{
+			if ARRAYSIZE(achievements[_i]) != 0; (_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
+		}
 	}
+	else
+	{
+		"\*\b2\_qNo ghosts available\n\f[height,-2]Ghosts with no achievements won't show up\f[height,-2]\n\n[half]"
+	}
+
+	"\n\n[half]\![*]\q[Go Back,OnChangeGhost,%(ghostId)]\n"
 	"\n[half]\![*]\q[Cancel,]"
 }
 
