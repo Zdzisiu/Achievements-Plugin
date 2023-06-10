@@ -1,0 +1,13 @@
+Charset,UTF-8
+type,plugin
+filename,yaya.dll
+
+//Plugin information
+name,Achievements
+id,149676e0-f721-11ed-afc5-0800200c9a66
+//The ID MUST be unique. You can use either this site https://www.famkruithof.net/uuid/uuidgen or this tool http://ssp.shillest.net/docs/guid.zip to generate a unique one for your plugin. **YOU MUST DO THIS FOR EACH PLUGIN YOU MAKE.**
+homeurl,NETWORK UPDATE URL
+
+//Your information
+craftman,Zdzisiu
+craftmanurl,https://zdzisiu.github.io/Ukagaka/

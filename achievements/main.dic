@@ -1,0 +1,260 @@
+// **** usage ****
+// 
+// The function name is the same as the event name; there is no On_ prefix when getting a string, as in the SHIORI/3.0 template.
+// 
+// If it returns a value, it will be executed as SakuraScript
+// You can control the behavior by assigning the following variables.
+// res_event
+// res_event , res_reference[0]... [n].
+// The specified event will be fired with reference. reference is optional.
+//
+// res_target
+// Specifies to which ghost the script or event should be sent.
+// Specify the Sakura name. Also, __SYSTEM_ALL_GHOST__ will notify all running ghosts.
+// If omitted, it will be sent to the ghost that executed the plugin menu.
+//
+// res_marker
+// You can specify the text to be displayed on the balloon's marker (the small status indicator at the bottom).
+// res_event_option
+// res_event_option / res_script_option
+// Set the EventOption / ScriptOption header, respectively.
+//
+// See the plugin specification for details.
+// http://emily.shillest.net/specwiki/index.php?PLUGIN%2F2.0%2F%E4%BB%95%E6%A7%98%E6%9B%B8
+
+//Hi! Zi here. The above has been translated from the original Japanese, though I can't remember if Ayaka translated this for me or if I did it through DeepL. It looks too good to be DeepL, surely.
+//YAYA as Plugin is a little different from YAYA as SHIORI, which is what ghosts use. I left some notes in the test event. Mostly, you need to remember to write reference[0] instead of reference0, etc, and you have to remember to use TOINT/TOREAL for numbers if you're sending them as references!
+//As an additional note, the easiest way to reload your plugin and see any changes, is to open the ghost explorer (ctrl E), change the Type tab at the top to plugin, right click your plugin and click Enable/Disable to unload it, then right click and click Enable/Disable to load it again.
+//Plugins are neat and you should mess around with this! I'm happy to answer questions if I can. If you want to see a more complete example of a YAYA plugin, you can try mine here https://zichqec.github.io/s-the-skeleton/saoris_plugins_tools#weather_station or you can find more examples/information in Japanese here https://emily.shillest.net/ayaya/index.php?YAYA+as+PLUGIN
+//For the list of events that can be sent to plugins, you can check here http://ssp.shillest.net/ukadoc/manual/list_plugin_event.html
+
+//Display name and version of the plugin in the balloon's SSTP text
+version
+{
+	"Achievements v0.0.1"
+}
+
+//Happens when the plugin loads, usually when SSP starts
+PluginLoad
+{
+	if !ISVAR("achievements"); achievements = IARRAY
+	if !ISVAR("ghostNames"); ghostNames = IARRAY
+	if !ISVAR("ghostId"); ghostId = 0
+}
+
+//Happens when the plugin unloads, usually when SSP closes
+PluginUnload
+{
+
+}
+
+//This function is called when the user clicks on the plugin through the right click menu
+OnMenuExec : all
+{
+	_split = SPLIT(achievements[ghostId],",")
+	_allCount = ARRAYSIZE(_split)
+	_doneCount = 0
+	_page = ""
+	for _i = 0; _i < ARRAYSIZE(_split); _i++
+	{
+		_show = SPLIT(_split[_i],"|")
+
+		if TOINT(_show[2]) == 1
+		{
+			_doneCount++
+			if _show[3] == "new"; _page += "\f[color,default.anchor]\f[bold,1]\f[height,+2]" + (1 + _i) + ". " + _show[0] + "\f[default]\n"
+			else; _page += "\f[bold,1]\f[height,+2]" + (1 + _i) + ". " + _show[0] + "\f[default]\n"
+			_page +=  "\f[height,-2]" + _show[1] + "\f[default]\n"
+		}	
+		else
+		{
+			if _show[3] == "new"; _page += "\f[color,disable]\f[bold,1]\f[height,+2]" + (1 + _i) + ". * " +  _show[0] + "\f[default]\n"
+			else; _page += "\f[color,disable]\f[bold,1]\f[height,+2]" + (1 + _i) + ". " +  _show[0] + "\f[default]\n"
+			if settings[ghostId] == 1; _page += "\f[color,disable]\f[height,-2]" + _show[1] + "\f[default]\n"
+			_page += "\n[half]"
+		}
+	}
+	
+	res_marker = version //This will show up in the little SSTP text in the ghost's balloon.
+	
+	"\_q\*\b2\f[height,+3]Current Ghost: \_a[OnShowNames]\f[bold,1]%(ghostNames[ghostId])\f[default]\_a\n\n"
+	if _allCount > 1 && _split[0] != ""; "\f[bold,1]Achievements %(_doneCount)/%(_allCount)\f[bold,0]\n\n[half]%(_page)"
+	else; "\f[bold,1]No achievemements avalible for this ghost\f[bold,0]\n\n[half]"
+	"\![*]\__q[OnFindAchievements]Check for achievements\__q\n\n"
+	
+	//"\![*]Example toggle (does nothing): \__q[OnExampleToggle]%(ExampleToggle)\__q\n\n"
+	achievements[ghostId] = REPLACE(achievements[ghostId],"new","")
+
+	"\n[half]\![*]\q[Cancel,]"
+}
+
+OnShowNames : all
+{
+	"\*\b2\_q* Choose a ghost:\n\n[half]"
+	for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
+	{
+		(_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
+	}
+	"\n[half]\![*]\q[Cancel,]"
+}
+
+OnChangeGhost
+{
+	ghostId = TOINT(reference[0])
+	--
+	"\![raiseplugin,Achievements,OnMenuExec]"
+}
+
+OnLockUnlock
+{
+	_ghostName = reference[0]
+	_id = reference[1]
+	ghostId = ASEARCH(_ghostName,ghostNames)
+	if _id == "all"
+	{
+		if ghostId != -1
+		{
+			_unlocked = TOINT(reference[2])
+			_split = SPLIT(achievements[ghostId],",")
+			_show = ""
+
+			for _i = 0; _i < ARRAYSIZE(_split); _i++
+			{
+				_show = SPLIT(_split[_i],"|")
+				if _show[2] != _unlocked
+				{
+					_show[2] = _unlocked
+					if _show[2] == 1; _show[3] = "new"
+					else; _show[3] = ""
+				}
+
+				_split[_i] = _show[0] + "|" + _show[1] + "|" + _show[2] + "|" + _show[3]
+			}
+
+			achievements[ghostId] = "%(_split)"
+		}
+	}
+	else
+	{
+		_id = TOINT(_id)
+		if ghostId != -1
+		{
+			_unlocked = TOINT(reference[2])
+			_split = SPLIT(achievements[ghostId],",")
+			_show = SPLIT(_split[_id],"|")
+			if _show[2] != _unlocked
+			{
+				_show[2] = _unlocked
+				if _show[2] == 1; _show[3] = "new"
+				else; _show[3] = ""
+			}
+
+			_split[_id] = _show[0] + "|" + _show[1] + "|" + _show[2] + "|" + _show[3]
+			achievements[ghostId] = "%(_split)"
+		}
+	}
+}
+
+OnGetAchievements
+{
+	/*res_event = "OnPluginTemplate.ExampleEvent" //Name of the event to send to whatever ghost.
+	res_target = "__SYSTEM_ALL_GHOST__" //Name of the ghost to send it to. This is the *sakura* name of the ghost, or __SYSTEM_ALL_GHOST__ to send it to all open ghosts. If no name is specified, it will be sent to the current ghost.
+	res_marker = version //This will show up in the little SSTP text in the ghost's balloon.*/
+	_ghostName = reference[0]
+	_name = SPLIT(reference[1],"|")
+	_desc = SPLIT(reference[2],"|")
+	_a = IARRAY
+	ghostId = ASEARCH(_ghostName,ghostNames)
+
+	if ghostId == -1
+	{
+		ghostId = ARRAYSIZE(ghostNames)
+		ghostNames ,= reference[1]
+	 
+	for _i = 0; _i < ARRAYSIZE(_name); _i++
+	{
+		_a ,= _name[_i] + "|" + _desc[_i]  + "|0" + "|new"
+	}
+	
+	achievements[ghostId] = "%(_a)"
+	if reference[3] != ""; settings[ghostId] = TOINT(reference[3])
+	}
+
+	//"%(achievements[ghostId])\n%(settings[ghostId])"
+}
+
+OnAchievementUpdate
+{
+	//Name of the event to send to whatever ghost.
+	res_target = "__SYSTEM_ALL_GHOST__" //Name of the ghost to send it to. This is the *sakura* name of the ghost, or __SYSTEM_ALL_GHOST__ to send it to all open ghosts. If no name is specified, it will be sent to the current ghost.
+	res_marker = version //This will show up in the little SSTP text in the ghost's balloon.
+
+	_ghostName = reference[0]
+	ghostId = ASEARCH(_ghostName,ghostNames)
+
+	if ghostId == -1
+	{
+		ghostId = ARRAYSIZE(ghostNames)
+		ghostNames ,= reference[0]
+	}
+
+	if reference[1] == "add"
+	{
+		_name = SPLIT(reference[2],"|")
+		_desc = SPLIT(reference[3],"|")
+
+		if GETTYPE(_name) == 4
+		{
+			_a = IARRAY
+
+			for _i = 0; _i < ARRAYSIZE(_name); _i++
+			{
+				_a ,= _name[_i] + "|" + _desc[_i]  + "|0" + "|new"
+			}
+			"0"
+			achievements[ghostId] += ",%(_a)"
+		}
+		else
+		{
+			_a = reference[2] + "|" + reference[3]  + "|0" + "|new"
+			"%(_a)"
+			achievements[ghostId] += ",%(_a)"
+		}
+	}
+	elseif reference[1] == "change"
+	{
+		_id = TOINT(reference[2])
+		_name = reference[3]
+		_desc = reference[4]
+		_split = SPLIT(achievements[ghostId],",")
+		_show = SPLIT(_split[_id],"|")
+		_show[0] = _name
+		_show[1] = _desc
+
+		_split[_id] = _show[0] + "|" + _show[1] + "|" + _show[2] + "|" + _show[3]
+		achievements[ghostId] = "%(_split)"
+		//"1: %(_split)"
+
+	}
+	else //update all/shift
+	{
+
+	}
+}
+
+OnFindAchievements : all
+{
+	res_target = SHIORI3FW.SakuraNameList[0]
+	"\![raiseother,__SYSTEM_ALL_GHOST__,OnSendAchievements]"
+	
+}
+
+OnGhostBoot
+{
+	if ASEARCH(reference[1],ghostNames) == -1
+	{
+		"\![raiseother,%(reference[1]),OnSendAchievements]"
+		ghostId = ARRAYSIZE(ghostNames)
+		ghostNames ,= reference[1]
+	}
+}
