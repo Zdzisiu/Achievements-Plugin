@@ -93,7 +93,7 @@ OnShowNames : all
 	"\*\b2\_q* Choose a ghost:\n\n[half]"
 	for _i = 0,_j=0; _i < ARRAYSIZE(ghostNames); _i++
 	{
-		(_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
+		if ARRAYSIZE(achievements[_i]) != 0; (_j++) + ". \_a[OnChangeGhost,"+_i+"]" + ghostNames[_i] + "\_a\n"
 	}
 	"\n[half]\![*]\q[Cancel,]"
 }
@@ -246,7 +246,8 @@ OnFindAchievements : all
 {
 	res_target = SHIORI3FW.SakuraNameList[0]
 	"\![raiseother,__SYSTEM_ALL_GHOST__,OnSendAchievements]"
-	
+	"\![raise,OnSendAchievements]"
+	"\![raiseplugin,Achievements,OnMenuExec]"
 }
 
 OnGhostBoot
