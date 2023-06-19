@@ -268,13 +268,3 @@ OnFindAchievements : all
 	"\![raise,OnSendAchievements]"
 	"\![raiseplugin,Achievements,OnMenuExec]"
 }
-
-OnGhostBoot
-{
-	if ASEARCH(reference[1],ghostNames) == -1
-	{
-		"\![raiseother,%(reference[1]),OnSendAchievements]"
-		ghostId = ARRAYSIZE(ghostNames)
-		ghostNames ,= reference[1]
-	}
-}
