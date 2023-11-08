@@ -183,7 +183,7 @@ OnGetAchievements
 	if ghostId == -1
 	{
 		ghostId = ARRAYSIZE(ghostNames)
-		ghostNames ,= reference[1]
+		ghostNames ,= reference[0]
 	}
 	else
 	{
