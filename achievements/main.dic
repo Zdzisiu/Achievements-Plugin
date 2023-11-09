@@ -82,10 +82,24 @@ OnMenuExec : all
 	else; "\f[bold,1]No achievemements available for this ghost\f[bold,0]\n\n[half]"
 	"\n\n[half]\![*]\__q[OnFindAchievements]Check for achievements\__q\n\n"
 	
+
+	"\![*]\__q[OnDel,]Delete Ghost\__q\n"
+
 	//"\![*]Example toggle (does nothing): \__q[OnExampleToggle]%(ExampleToggle)\__q\n\n"
 	achievements[ghostId] = REPLACE(achievements[ghostId],"new","")
 
 	"\n[half]\![*]\q[Cancel,]"
+}
+
+OnDel
+{
+	"\_qAre you sure you want to delete %(ghostNames[ghostId])?\n\n[half]\__q[OnDelYes]Yes\__q\n\n[half]\__q[No]Cancel\__q"
+}
+
+OnDelYes
+{
+	ghostNames[ghostId] = IARRAY
+	ghostId = 0
 }
 
 OnShowNames : all
