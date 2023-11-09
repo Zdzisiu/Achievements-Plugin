@@ -99,6 +99,7 @@ OnDel
 OnDelYes
 {
 	ghostNames[ghostId] = IARRAY
+	achievements[ghostId] = IARRAY
 	ghostId = 0
 }
 
